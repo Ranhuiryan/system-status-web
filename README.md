@@ -5,7 +5,7 @@ System Status Web is a web application that shows system status information, inc
 ## Getting Started
 
 1. Install Python 3.7 or newer.
-2. Clone the repository: git clone <https://github.com/Ranhuiryan/system-status-web.git>
+2. Clone the repository: `git clone https://github.com/Ranhuiryan/system-status-web.git`
 3. Install the necessary packages: `pip install -r requirements.txt`
 4. Run the application: `python main.py`
 5. Open your browser and navigate to <http://localhost:5000>.
