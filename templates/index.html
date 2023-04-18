@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>System Status</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Declare chartData outside the setInterval function
+            var chartData = {
+            labels: [],
+            datasets: [{
+                    label: "CPU Usage",
+                    data: [],
+                    borderColor: "rgba(62, 149, 205, 0.4)",
+                    fill: false
+                },
+                {
+                    label: "GPU Usage",
+                    data: [],
+                    borderColor: "rgba(142, 94, 162, 0.4)",
+                    fill: false
+                },
+                {
+                    label: "RAM Usage",
+                    data: [],
+                    borderColor: "rgba(255, 204, 0, 0.4)",
+                    fill: false
+                }]
+            };
+            
+            // Declare chartOptions outside setInterval function
+            var chartOptions = {
+                responsive: true,
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                },
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            min: 0,
+                            max: 100,
+                            stepSize: 20
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Usage (%)'
+                        }
+                    }],
+                    xAxes: [{
+                        ticks: {
+                            maxTicksLimit: 5
+                        },
+                        scaleLabel: {
+                            display: true,
+                        }
+                    }]
+                }
+            };
+
+            // Draw chart in canvas
+            var ctx = document.getElementById("myChart").getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: chartOptions
+            });
+
+            setInterval(function() {
+                var xhr = new XMLHttpRequest();
+                xhr.open("GET", "/status", true);
+                xhr.send();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        var res = JSON.parse(xhr.responseText);
+                        document.getElementById("cpu_usage").innerHTML = res.cpu_usage + " %";
+                        document.getElementById("gpu_usage").innerHTML = res.gpu_usage + " %";
+                        document.getElementById("gpu_power").innerHTML = Math.round(res.gpu_power / 1000) + " W";
+                        document.getElementById("gpu_temperature").innerHTML = res.gpu_temperature + " °C";
+                        document.getElementById("gpu_memory_usage").innerHTML = Math.round(res.gpu_memory_usage / 1048576) + " MB / " + Math.round(res.gpu_memory_total / 1048576) + " MB";
+                        document.getElementById("ram_usage").innerHTML = res.ram_usage + " MB / " + res.ram_total + " MB";
+                        
+                        // Update notification
+                        if (res.cpu_usage > 80 || res.gpu_temperature > 80 || Math.round(res.ram_usage / res.ram_total * 100) > 90) {
+                            document.getElementById("notification").innerHTML = "System status critical!";
+                            document.getElementById("notification").style.backgroundColor = "#ffcccb";
+                        } else {
+                            document.getElementById("notification").innerHTML = "System status normal!";
+                            document.getElementById("notification").style.backgroundColor = "#dcffcb";
+                        }
+                        
+                        // Update chart data
+                        // Add a new timestamp to the x-axis labels
+                        myChart.data.labels.push(new Date().toLocaleTimeString());
+                        myChart.data.datasets[0].data.push(res.cpu_usage);
+                        myChart.data.datasets[1].data.push(res.gpu_usage);
+                        myChart.data.datasets[2].data.push(Math.round(res.ram_usage / res.ram_total * 100));
+                        // Remove oldest data point if there are more than 10 data points
+                        if (myChart.data.labels.length > 15) {
+                            myChart.data.labels.shift();
+                            myChart.data.datasets[0].data.shift();
+                            myChart.data.datasets[1].data.shift();
+                            myChart.data.datasets[2].data.shift();
+                        }
+                        myChart.update();
+                    }
+                };
+            }, 2500);
+        });
+    </script>
+    <style>
+        /* Add branding styles */
+        .branding {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .brand-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Improve table layout styles */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            text-align: left;
+        }
+
+        th {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            background-color: #f2f2f2;
+            padding: 10px;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        .data-title {
+            font-weight: bold;
+            font-size: 16px;
+            padding-right: 10px;
+        }
+
+        .data-value {
+            font-size: 16px;
+            color: #555;
+        }
+
+        /* Visualize data with charts*/
+        #myChart {
+            width: 100%;
+            height: auto;
+            margin-top: 20px;
+        }
+
+        /* Add notification styles */
+        #notification {
+            color: #333;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 10px;
+            display: block;
+            margin-top: 20px;
+        }
+
+        /* Make it responsive */
+        @media only screen and (max-width: 768px) {
+            th {
+                font-size: 16px;
+            }
+
+            td {
+                font-size: 14px;
+            }
+
+            .brand-name {
+                font-size: 20px;
+            }
+        }
+
+        @media only screen and (max-width: 480px) {
+            th {
+                font-size: 14px;
+            }
+
+            td {
+                font-size: 12px;
+            }
+
+            .brand-name {
+                font-size: 18px;
+            }
+        }
+
+        @media only screen and (max-width: 320px) {
+            th {
+                font-size: 12px;
+            }
+
+            td {
+                font-size: 10px;
+            }
+
+            .brand-name {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <table>
+        <thead>
+            <div id="notification"></div>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="data-title">CPU Usage</td>
+                <td class="data-value"><span id="cpu_usage"></span></td>
+            </tr>
+            <tr>
+                <td class="data-title">GPU Usage</td>
+                <td class="data-value"><span id="gpu_usage"></span></td>
+            </tr>
+            <tr>
+                <td class="data-title">GPU Temperature</td>
+                <td class="data-value"><span id="gpu_temperature"></span></td>
+            </tr>
+            <tr>
+                <td class="data-title">GPU Power</td>
+                <td class="data-value"><span id="gpu_power"></span></td>
+            </tr>
+            <tr>
+                <td class="data-title">RAM Usage</td>
+                <td class="data-value"><span id="ram_usage"></span></td>
+            </tr>
+            <tr>
+                <td class="data-title">GPU RAM Usage</td>
+                <td class="data-value"><span id="gpu_memory_usage"></span></td>
+            </tr>
+        </tbody>
+    </table>
+    <canvas id="myChart"></canvas> <!-- Add canvas element to display chart -->
+</body>
+
+</html>

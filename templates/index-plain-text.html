@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>System Status</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            setInterval(function() {
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        var res = JSON.parse(xhr.responseText);
+                        document.getElementById("cpu_usage").innerHTML = res.cpu_usage + " %";
+                        document.getElementById("gpu_usage").innerHTML = res.gpu_usage + " %";
+                        document.getElementById("gpu_temperature").innerHTML = res.gpu_temperature + " °C";
+                        document.getElementById("gpu_memory_usage").innerHTML = Math.round(res.gpu_memory_usage / 1048576) + " MB / " + Math.round(res.gpu_memory_total / 1048576) + " MB";
+                        document.getElementById("ram_usage").innerHTML = res.ram_usage + " MB / " + res.ram_total + " MB";
+                    }
+                };
+                xhr.open("GET", "/status", true);
+                xhr.send();
+            }, 2500);
+        });
+    </script>
+</head>
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>System Usage</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>CPU Usage</td>
+                <td><span id="cpu_usage"></span></td>
+            </tr>
+            <tr>
+                <td>GPU Usage</td>
+                <td><span id="gpu_usage"></span></td>
+            </tr>
+            <tr>
+                <td>GPU Temperature</td>
+                <td><span id="gpu_temperature"></span></td>
+            </tr>
+            <tr>
+                <td>GPU Memory Usage</td>
+                <td><span id="gpu_memory_usage"></span></td>
+            </tr>
+            <tr>
+                <td>RAM Usage</td>
+                <td><span id="ram_usage"></span></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
