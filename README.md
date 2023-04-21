@@ -13,9 +13,10 @@ System Status Web is a web application that shows system status information, inc
 ## Prerequisites
 
 - Python 3.7 or newer
-- Flask 2.0.1 or newer
-- psutil 5.8.0 or newer
-- nvidia-ml-py3 11.450.51 or newer
+- Flask
+- psutil
+- nvidia-ml-py3
+- wmi
 
 ## License
 
