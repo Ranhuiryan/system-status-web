@@ -1,3 +1,4 @@
-flask==2.0.1
-psutil==5.8.0
-nvidia-ml-py3==11.450.51
+flask
+psutil
+nvidia-ml-py3
+wmi

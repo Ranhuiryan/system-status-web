@@ -1,11 +1,25 @@
 from flask import Flask, jsonify, render_template
 import psutil
 import nvidia_smi
+import wmi
+import platform
+import pythoncom
 
 app = Flask(__name__)
 
 # Initialize nvidia-smi
 nvidia_smi.nvmlInit()
+
+def check_process_running(process_name):
+    """
+    Check if a process is running by its name.
+    :param process_name: The name of the process to check.
+    :return: True if the process is running, False otherwise.
+    """
+    for proc in psutil.process_iter(['pid', 'name']):
+        if proc.name() == process_name:
+            return True
+    return False
 
 @app.route('/')
 def index():
@@ -22,6 +36,21 @@ def status():
 
     # Get CPU usage
     cpu_usage = psutil.cpu_percent()
+    if platform.system() == 'Windows':
+        # Check if OpenHardwareMonitor process is running
+        if not check_process_running('OpenHardwareMonitor.exe'):
+            # print("OpenHardwareMonitor is not running. CPU temperature is not monitored.")
+            cpu_temperature = -1
+        else:
+            pythoncom.CoInitialize()
+            # Get CPU temperature
+            w = wmi.WMI(namespace='root\OpenHardwareMonitor')
+            temperatures = w.Sensor()
+            cpu_temperature = [sensor.Value for sensor in temperatures if sensor.SensorType=="Temperature" and "cpu" in sensor.Name.lower()]
+    else:
+        # Get CPU temperature
+        temperatures = psutil.sensors_temperatures()
+        cpu_temperature = [x.current for x in temperatures['coretemp']]
 
     # Get RAM usage
     ram_stats = psutil.virtual_memory()
@@ -32,6 +61,7 @@ def status():
     # Return the system status as a JSON response
     system_status = {
         'cpu_usage': cpu_usage,
+        'cpu_temperature': cpu_temperature,
         'gpu_usage': gpu_usage,
         'gpu_power': gpu_power,
         'gpu_temperature': gpu_temperature,

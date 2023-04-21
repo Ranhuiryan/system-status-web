@@ -75,7 +75,15 @@
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState === 4 && xhr.status === 200) {
                         var res = JSON.parse(xhr.responseText);
+                        // console.log(res);
                         document.getElementById("cpu_usage").innerHTML = res.cpu_usage + " %";
+                        if (res.cpu_temperature == -1) {
+                            document.getElementById("cpu_temperature").innerHTML = "N/A";
+                            document.getElementById("cpu_temperature_display").style.display = "none";
+                        } else {
+                            document.getElementById("cpu_temperature").innerHTML = Math.round(res.cpu_temperature[0]) + " °C";
+                            document.getElementById("cpu_temperature_display").style.display = "inline";
+                        }
                         document.getElementById("gpu_usage").innerHTML = res.gpu_usage + " %";
                         document.getElementById("gpu_power").innerHTML = Math.round(res.gpu_power / 1000) + " W";
                         document.getElementById("gpu_temperature").innerHTML = res.gpu_temperature + " °C";
@@ -83,7 +91,7 @@
                         document.getElementById("ram_usage").innerHTML = res.ram_usage + " MB / " + res.ram_total + " MB";
                         
                         // Update notification
-                        if (res.cpu_usage > 80 || res.gpu_temperature > 80 || Math.round(res.ram_usage / res.ram_total * 100) > 90) {
+                        if (res.cpu_temperature > 80 || res.gpu_temperature > 80 || Math.round(res.ram_usage / res.ram_total * 100) > 90) {
                             document.getElementById("notification").innerHTML = "System status critical!";
                             document.getElementById("notification").style.backgroundColor = "#ffcccb";
                         } else {
@@ -232,6 +240,14 @@
                 <td class="data-title">CPU Usage</td>
                 <td class="data-value"><span id="cpu_usage"></span></td>
             </tr>
+            <tr id="cpu_temperature_display" style="display: none;">
+                <td class="data-title">CPU Temperature</td>
+                <td class="data-value"><span id="cpu_temperature"></span></td>
+            </tr>
+            <tr>
+                <td class="data-title">RAM Usage</td>
+                <td class="data-value"><span id="ram_usage"></span></td>
+            </tr>
             <tr>
                 <td class="data-title">GPU Usage</td>
                 <td class="data-value"><span id="gpu_usage"></span></td>
@@ -245,11 +261,7 @@
                 <td class="data-value"><span id="gpu_power"></span></td>
             </tr>
             <tr>
-                <td class="data-title">RAM Usage</td>
-                <td class="data-value"><span id="ram_usage"></span></td>
-            </tr>
-            <tr>
-                <td class="data-title">GPU RAM Usage</td>
+                <td class="data-title">VRAM Usage</td>
                 <td class="data-value"><span id="gpu_memory_usage"></span></td>
             </tr>
         </tbody>
